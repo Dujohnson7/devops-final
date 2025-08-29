@@ -168,4 +168,8 @@ CREATE TABLE users (
 - Backend: `GET /health`
 - Frontend: `GET /`
 - Database: `mysqladmin ping`
+
+### Docker Deployment
+ - Backend :  dujohnson7/crud-backend:latest
+ - Frontend :  dujohnson7/crud-frontend:latest
  
