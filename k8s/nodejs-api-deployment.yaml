@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secret
+type: Opaque
+data:
+  # Base64 encoded values
+  # db-password: YXBwcGFzc3dvcmQ= (apppassword)
+  db-password: YXBwcGFzc3dvcmQ=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: dujohnson7/crud-backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "5000"
+        - name: DB_HOST
+          value: "mariadb-service"
+        - name: DB_USER
+          value: "appuser"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: db-password
+        - name: DB_DATABASE
+          value: "crud_app"
+        - name: DB_TABLENAME
+          value: "users"
+        - name: DB_WAITFORCONNECTIONS
+          value: "true"
+        - name: DB_CONNECTIONLIMIT
+          value: "10"
+        - name: DB_QUEUELIMIT
+          value: "0"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 2
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
